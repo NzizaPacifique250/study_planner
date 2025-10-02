@@ -1,0 +1,188 @@
+// Add this to your pubspec.yaml dependencies:
+// table_calendar: ^3.0.9
+
+import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'add_task_page.dart';
+import 'task.dart';
+
+class CalendarScreen extends StatefulWidget {
+  final List tasks;
+  final Future<void> Function(Task) onAddTask;
+  const CalendarScreen({Key? key, required this.tasks, required this.onAddTask}) : super(key: key);
+
+  @override
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends State<CalendarScreen> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedDay = _selectedDay ?? _focusedDay;
+    final tasksForSelectedDay = widget.tasks.where((task) {
+      final taskDate = task.dueDate;
+      return taskDate.year == selectedDay.year &&
+          taskDate.month == selectedDay.month &&
+          taskDate.day == selectedDay.day;
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A2342),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0A2342),
+        elevation: 0,
+        title: const Text('My Study Planner', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Column(
+          children: [
+            Card(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 8,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TableCalendar(
+                      firstDay: DateTime.utc(2020, 1, 1),
+                      lastDay: DateTime.utc(2030, 12, 31),
+                      focusedDay: _focusedDay,
+                      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                      onDaySelected: (selectedDay, focusedDay) {
+                        setState(() {
+                          _selectedDay = selectedDay;
+                          _focusedDay = focusedDay;
+                        });
+                      },
+                      calendarStyle: CalendarStyle(
+                        todayDecoration: BoxDecoration(
+                          color: const Color(0xFFFFC700),
+                          shape: BoxShape.circle,
+                        ),
+                        selectedDecoration: BoxDecoration(
+                          color: const Color(0xFF0A2342),
+                          shape: BoxShape.circle,
+                        ),
+                        markerDecoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        defaultTextStyle: const TextStyle(color: Color(0xFF0A2342)),
+                        weekendTextStyle: const TextStyle(color: Color(0xFF0A2342)),
+                        outsideTextStyle: const TextStyle(color: Colors.grey),
+                      ),
+                      headerStyle: HeaderStyle(
+                        formatButtonVisible: false,
+                        titleCentered: true,
+                        titleTextStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Color(0xFF0A2342),
+                        ),
+                        leftChevronIcon: const Icon(Icons.chevron_left, color: Color(0xFF0A2342)),
+                        rightChevronIcon: const Icon(Icons.chevron_right, color: Color(0xFF0A2342)),
+                        decoration: const BoxDecoration(color: Colors.transparent),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Card(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 8,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: tasksForSelectedDay.isNotEmpty
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...tasksForSelectedDay.map((task) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      task.title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Color(0xFF0A2342),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    if (task.description != null)
+                                      Text(
+                                        task.description!,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xFF0A2342),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              )),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          const Text(
+                            'No tasks for this day.',
+                            style: TextStyle(
+                              color: Color(0xFF0A2342),
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFFC700),
+                                foregroundColor: const Color(0xFF0A2342),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddTaskPage(
+                                      onTaskAdded: (task) {},
+                                      initialDate: selectedDay,
+                                    ),
+                                  ),
+                                );
+                                if (result != null) {
+                                  await widget.onAddTask(result);
+                                  setState(() {});
+                                }
+                              },
+                              child: const Text('New Task'),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
