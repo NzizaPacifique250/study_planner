@@ -106,81 +106,134 @@ class TodayScreen extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 8,
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Remind 4sasks',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Color(0xFF0A2342),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      if (todayTasks.isEmpty)
-                        const Text('No tasks for today.', style: TextStyle(color: Color(0xFF0A2342))),
-                      ...todayTasks.map((task) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• ', style: TextStyle(fontSize: 16, color: Color(0xFF0A2342))),
-                            Expanded(
-                              child: Text(
-                                task.title,
-                                style: const TextStyle(fontSize: 16, color: Color(0xFF0A2342)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFFC700),
-                            foregroundColor: const Color(0xFF0A2342),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Remind Tasks',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF0A2342),
                           ),
-                          onPressed: () async {
-                            final result = await Navigator.push<Task?>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddTaskPage(
-                                  initialDate: today,
+                        ),
+                        const SizedBox(height: 16),
+                        if (todayTasks.isEmpty)
+                          const Text('No tasks for today.', style: TextStyle(color: Color(0xFF0A2342))),
+                        ...todayTasks.map((task) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.circle, size: 10, color: Color(0xFF0A2342)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      task.title,
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0A2342)),
+                                    ),
+                                    if (task.description != null && task.description!.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 2.0),
+                                        child: Text(
+                                          task.description!,
+                                          style: const TextStyle(fontSize: 14, color: Color(0xFF0A2342)),
+                                        ),
+                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2.0),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.calendar_today, size: 16, color: Color(0xFF0A2342)),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${task.dueDate.year}-${task.dueDate.month.toString().padLeft(2, '0')}-${task.dueDate.day.toString().padLeft(2, '0')}',
+                                            style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                          ),
+                                          if (task.dueDate.hour != 0 || task.dueDate.minute != 0) ...[
+                                            const SizedBox(width: 12),
+                                            const Icon(Icons.access_time, size: 16, color: Color(0xFF0A2342)),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '${task.dueDate.hour.toString().padLeft(2, '0')}:${task.dueDate.minute.toString().padLeft(2, '0')}',
+                                              style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    if (task.reminderTime != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 2.0),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.notifications_active, size: 16, color: Color(0xFFFFC700)),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Reminder: ${task.reminderTime!.year}-${task.reminderTime!.month.toString().padLeft(2, '0')}-${task.reminderTime!.day.toString().padLeft(2, '0')} '
+                                              '${task.reminderTime!.hour.toString().padLeft(2, '0')}:${task.reminderTime!.minute.toString().padLeft(2, '0')}',
+                                              style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
-                            );
-                            if (result != null) {
-                              await onAddTask(result);
-                            }
-                          },
-                          child: const Text('New Task'),
+                            ],
+                          ),
+                        )),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFC700),
+                              foregroundColor: const Color(0xFF0A2342),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                            onPressed: () async {
+                              final result = await Navigator.push<Task?>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddTaskPage(
+                                    initialDate: today,
+                                  ),
+                                ),
+                              );
+                              if (result != null) {
+                                await onAddTask(result);
+                              }
+                            },
+                            child: const Text('New Task'),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

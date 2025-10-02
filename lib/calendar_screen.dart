@@ -37,6 +37,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: const Text('My Study Planner', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFFFC700),
+        foregroundColor: const Color(0xFF0A2342),
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddTaskPage(
+                initialDate: selectedDay,
+              ),
+            ),
+          );
+          if (result != null) {
+            await widget.onAddTask(result);
+            setState(() {});
+          }
+        },
+        tooltip: 'Add Task',
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
@@ -97,87 +117,132 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            Card(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 8,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: tasksForSelectedDay.isNotEmpty
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...tasksForSelectedDay.map((task) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      task.title,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: Color(0xFF0A2342),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    if (task.description != null)
-                                      Text(
-                                        task.description!,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Color(0xFF0A2342),
+            SizedBox(
+              height: 320, // Fixed height for the task list container
+              child: Card(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: tasksForSelectedDay.isNotEmpty
+                      ? ListView.builder(
+                          itemCount: tasksForSelectedDay.length,
+                          itemBuilder: (context, index) {
+                            final task = tasksForSelectedDay[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.circle, size: 10, color: Color(0xFF0A2342)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          task.title,
+                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0A2342)),
                                         ),
-                                      ),
-                                  ],
-                                ),
-                              )),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          const Text(
-                            'No tasks for this day.',
-                            style: TextStyle(
-                              color: Color(0xFF0A2342),
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFFC700),
-                                foregroundColor: const Color(0xFF0A2342),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              onPressed: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AddTaskPage(
-                                      onTaskAdded: (task) {},
-                                      initialDate: selectedDay,
+                                        if (task.description != null && task.description!.isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 2.0),
+                                            child: Text(
+                                              task.description!,
+                                              style: const TextStyle(fontSize: 14, color: Color(0xFF0A2342)),
+                                            ),
+                                          ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2.0),
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.calendar_today, size: 16, color: Color(0xFF0A2342)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${task.dueDate.year}-${task.dueDate.month.toString().padLeft(2, '0')}-${task.dueDate.day.toString().padLeft(2, '0')}',
+                                                style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                              ),
+                                              if (task.dueDate.hour != 0 || task.dueDate.minute != 0) ...[
+                                                const SizedBox(width: 12),
+                                                const Icon(Icons.access_time, size: 16, color: Color(0xFF0A2342)),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  '${task.dueDate.hour.toString().padLeft(2, '0')}:${task.dueDate.minute.toString().padLeft(2, '0')}',
+                                                  style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                        if (task.reminderTime != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 2.0),
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.notifications_active, size: 16, color: Color(0xFFFFC700)),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Reminder: ${task.reminderTime!.year}-${task.reminderTime!.month.toString().padLeft(2, '0')}-${task.reminderTime!.day.toString().padLeft(2, '0')} '
+                                                  '${task.reminderTime!.hour.toString().padLeft(2, '0')}:${task.reminderTime!.minute.toString().padLeft(2, '0')}',
+                                                  style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
-                                );
-                                if (result != null) {
-                                  await widget.onAddTask(result);
-                                  setState(() {});
-                                }
-                              },
-                              child: const Text('New Task'),
+                                ],
+                              ),
+                            );
+                          },
+                        )
+                      : Column(
+                          children: [
+                            const Text(
+                              'No tasks for this day.',
+                              style: TextStyle(
+                                color: Color(0xFF0A2342),
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFFC700),
+                                  foregroundColor: const Color(0xFF0A2342),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                ),
+                                onPressed: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddTaskPage(
+                                        onTaskAdded: (task) {},
+                                        initialDate: selectedDay,
+                                      ),
+                                    ),
+                                  );
+                                  if (result != null) {
+                                    await widget.onAddTask(result);
+                                    setState(() {});
+                                  }
+                                },
+                                child: const Text('New Task'),
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
               ),
             ),
           ],
