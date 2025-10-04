@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Add flutter_local_notifications to pubspec.yaml",
+			"type": "shell",
+			"command": "flutter pub add flutter_local_notifications",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

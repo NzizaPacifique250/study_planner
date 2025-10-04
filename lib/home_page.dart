@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'calendar_screen.dart';
+import 'settings_screen.dart';
 import 'task.dart';
 import 'task_storage.dart';
 import 'add_task_page.dart';
@@ -53,12 +54,34 @@ class _HomePageState extends State<HomePage> {
       const SettingsScreen(),
     ];
     return Scaffold(
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : IndexedStack(
-              index: _selectedIndex,
-              children: screens,
+      body: Stack(
+        children: [
+          _loading
+              ? const Center(child: CircularProgressIndicator())
+              : IndexedStack(
+                  index: _selectedIndex,
+                  children: screens,
+                ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 56, // Above the BottomNavigationBar
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Center(
+                child: Text(
+                  'Developed by Nziza Aime Pacifique',
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -232,6 +255,7 @@ class TodayScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                
               ],
             ),
           ),
@@ -242,15 +266,3 @@ class TodayScreen extends StatelessWidget {
 }
 
 
-
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: const Center(child: Text('Settings will appear here.')),
-    );
-  }
-}
