@@ -9,7 +9,9 @@ import 'task.dart';
 class CalendarScreen extends StatefulWidget {
   final List tasks;
   final Future<void> Function(Task) onAddTask;
-  const CalendarScreen({Key? key, required this.tasks, required this.onAddTask}) : super(key: key);
+  final Future<void> Function(Task) onDeleteTask;
+  final Future<void> Function(Task, Task) onEditTask;
+  const CalendarScreen({Key? key, required this.tasks, required this.onAddTask, required this.onDeleteTask, required this.onEditTask}) : super(key: key);
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
@@ -132,70 +134,110 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           itemCount: tasksForSelectedDay.length,
                           itemBuilder: (context, index) {
                             final task = tasksForSelectedDay[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.circle, size: 10, color: Color(0xFF0A2342)),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          task.title,
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0A2342)),
-                                        ),
-                                        if (task.description != null && task.description!.isNotEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 2.0),
-                                            child: Text(
-                                              task.description!,
-                                              style: const TextStyle(fontSize: 14, color: Color(0xFF0A2342)),
-                                            ),
+                            return Dismissible(
+                              key: ValueKey(task.hashCode),
+                              background: Container(
+                                color: Colors.red,
+                                alignment: Alignment.centerLeft,
+                                padding: const EdgeInsets.only(left: 24),
+                                child: const Icon(Icons.delete, color: Colors.white),
+                              ),
+                              secondaryBackground: Container(
+                                color: Colors.blue,
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 24),
+                                child: const Icon(Icons.edit, color: Colors.white),
+                              ),
+                              confirmDismiss: (direction) async {
+                                if (direction == DismissDirection.startToEnd) {
+                                  // Delete
+                                  await widget.onDeleteTask(task);
+                                  setState(() {});
+                                  return true;
+                                } else if (direction == DismissDirection.endToStart) {
+                                  // Edit
+                                  final edited = await Navigator.push<Task?>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddTaskPage(
+                                        initialDate: task.dueDate,
+                                        onTaskAdded: (t) {},
+                                      ),
+                                    ),
+                                  );
+                                  if (edited != null) {
+                                    await widget.onEditTask(task, edited);
+                                    setState(() {});
+                                  }
+                                  return false;
+                                }
+                                return false;
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.circle, size: 10, color: Color(0xFF0A2342)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            task.title,
+                                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0A2342)),
                                           ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 2.0),
-                                          child: Row(
-                                            children: [
-                                              const Icon(Icons.calendar_today, size: 16, color: Color(0xFF0A2342)),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                '${task.dueDate.year}-${task.dueDate.month.toString().padLeft(2, '0')}-${task.dueDate.day.toString().padLeft(2, '0')}',
-                                                style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                          if (task.description != null && task.description!.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 2.0),
+                                              child: Text(
+                                                task.description!,
+                                                style: const TextStyle(fontSize: 14, color: Color(0xFF0A2342)),
                                               ),
-                                              if (task.dueDate.hour != 0 || task.dueDate.minute != 0) ...[
-                                                const SizedBox(width: 12),
-                                                const Icon(Icons.access_time, size: 16, color: Color(0xFF0A2342)),
-                                                const SizedBox(width: 2),
-                                                Text(
-                                                  '${task.dueDate.hour.toString().padLeft(2, '0')}:${task.dueDate.minute.toString().padLeft(2, '0')}',
-                                                  style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
-                                        if (task.reminderTime != null)
+                                            ),
                                           Padding(
                                             padding: const EdgeInsets.only(top: 2.0),
                                             child: Row(
                                               children: [
-                                                const Icon(Icons.notifications_active, size: 16, color: Color(0xFFFFC700)),
+                                                const Icon(Icons.calendar_today, size: 16, color: Color(0xFF0A2342)),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  'Reminder: ${task.reminderTime!.year}-${task.reminderTime!.month.toString().padLeft(2, '0')}-${task.reminderTime!.day.toString().padLeft(2, '0')} '
-                                                  '${task.reminderTime!.hour.toString().padLeft(2, '0')}:${task.reminderTime!.minute.toString().padLeft(2, '0')}',
+                                                  '${task.dueDate.year}-${task.dueDate.month.toString().padLeft(2, '0')}-${task.dueDate.day.toString().padLeft(2, '0')}',
                                                   style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
                                                 ),
+                                                if (task.dueDate.hour != 0 || task.dueDate.minute != 0) ...[
+                                                  const SizedBox(width: 12),
+                                                  const Icon(Icons.access_time, size: 16, color: Color(0xFF0A2342)),
+                                                  const SizedBox(width: 2),
+                                                  Text(
+                                                    '${task.dueDate.hour.toString().padLeft(2, '0')}:${task.dueDate.minute.toString().padLeft(2, '0')}',
+                                                    style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                                  ),
+                                                ],
                                               ],
                                             ),
                                           ),
-                                      ],
+                                          if (task.reminderTime != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 2.0),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.notifications_active, size: 16, color: Color(0xFFFFC700)),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Reminder: ${task.reminderTime!.year}-${task.reminderTime!.month.toString().padLeft(2, '0')}-${task.reminderTime!.day.toString().padLeft(2, '0')} '
+                                                    '${task.reminderTime!.hour.toString().padLeft(2, '0')}:${task.reminderTime!.minute.toString().padLeft(2, '0')}',
+                                                    style: const TextStyle(fontSize: 13, color: Color(0xFF0A2342)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           },
