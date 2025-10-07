@@ -63,7 +63,7 @@ Below are five app UI screenshots:
 
 1. **Clone the repository:**
    ```sh
-   git clone <your-repo-url>
+   git clone https://github.com/NzizaPacifique250/study_planner.git
    cd study_planner
    ```
 2. **Install dependencies:**
