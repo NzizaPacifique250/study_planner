@@ -160,7 +160,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => AddTaskPage(
-                                        initialDate: task.dueDate,
+                                        existingTask: task,
                                         onTaskAdded: (t) {},
                                       ),
                                     ),

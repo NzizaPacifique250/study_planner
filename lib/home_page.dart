@@ -211,7 +211,7 @@ class TodayScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => AddTaskPage(
-                                    initialDate: task.dueDate,
+                                    existingTask: task,
                                     onTaskAdded: (t) {},
                                   ),
                                 ),

@@ -4,7 +4,8 @@ import 'task.dart';
 class AddTaskPage extends StatefulWidget {
   final Function(Task)? onTaskAdded;
   final DateTime? initialDate;
-  const AddTaskPage({Key? key, this.onTaskAdded, this.initialDate}) : super(key: key);
+  final Task? existingTask;
+  const AddTaskPage({Key? key, this.onTaskAdded, this.initialDate, this.existingTask}) : super(key: key);
 
   @override
   State<AddTaskPage> createState() => _AddTaskPageState();
@@ -20,7 +21,12 @@ class _AddTaskPageState extends State<AddTaskPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialDate != null) {
+    if (widget.existingTask != null) {
+      _title = widget.existingTask!.title;
+      _description = widget.existingTask!.description;
+      _dueDate = widget.existingTask!.dueDate;
+      _reminderTime = widget.existingTask!.reminderTime;
+    } else if (widget.initialDate != null) {
       _dueDate = widget.initialDate;
     }
   }
@@ -56,6 +62,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                     children: [
                       const SizedBox(height: 8),
                       TextFormField(
+                        initialValue: _title,
                         decoration: const InputDecoration(
                           labelText: 'Title',
                           labelStyle: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0A2342)),
