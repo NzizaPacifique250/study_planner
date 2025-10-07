@@ -53,6 +53,7 @@ Below are five app UI screenshots:
 1. ![Home Screen](assets/screenshots/home_view.png)
 2. ![Add Task](assets/screenshots/adding_task.png)
 3. ![Calendar View](assets/screenshots/calendar_view.png)
+4. [Notification Remainder](assets/screenshots/notification_remainder.png)
 4. ![Task Edit](assets/screenshots/editing_view.png)
 5. ![Task Delete](assets/screenshots/deleting_task.png)
 6. ![Settings](assets/screenshots/settings_view.png)

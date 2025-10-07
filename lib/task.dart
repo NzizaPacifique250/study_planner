@@ -23,4 +23,7 @@ class Task {
         dueDate: DateTime.parse(json['dueDate']),
         reminderTime: json['reminderTime'] != null ? DateTime.parse(json['reminderTime']) : null,
       );
+
+  // Stable identifier for a task (used for tracking shown reminders)
+  String get id => '${title.replaceAll(' ', '_')}_${dueDate.toIso8601String()}';
 }

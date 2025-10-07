@@ -4,6 +4,7 @@ import 'task.dart';
 
 class TaskStorage {
   static const String _key = 'tasks';
+  static const String _shownRemindersKey = 'shown_reminders';
 
   static Future<List<Task>> loadTasks() async {
     final prefs = await SharedPreferences.getInstance();
@@ -17,5 +18,18 @@ class TaskStorage {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = json.encode(tasks.map((e) => e.toJson()).toList());
     await prefs.setString(_key, jsonString);
+  }
+
+  static Future<Set<String>> loadShownReminders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_shownRemindersKey);
+    if (jsonString == null) return <String>{};
+    final List<dynamic> list = json.decode(jsonString);
+    return list.map((e) => e.toString()).toSet();
+  }
+
+  static Future<void> saveShownReminders(Set<String> ids) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_shownRemindersKey, json.encode(ids.toList()));
   }
 }

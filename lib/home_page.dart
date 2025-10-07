@@ -32,6 +32,50 @@ class _HomePageState extends State<HomePage> {
       _tasks = loaded;
       _loading = false;
     });
+    // After loading tasks, check for any reminders that are due and not yet shown
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkReminders();
+    });
+  }
+
+  Future<void> _checkReminders() async {
+    final shown = await TaskStorage.loadShownReminders();
+    final now = DateTime.now();
+    final due = _tasks.where((t) => t.reminderTime != null && (t.reminderTime!.isBefore(now) || t.reminderTime!.isAtSameMomentAs(now)) && !shown.contains(t.id)).toList();
+    if (due.isEmpty) return;
+
+    // Show reminders sequentially
+    for (final task in due) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Task Reminder'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(task.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              if (task.description != null && task.description!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(task.description!),
+              ],
+              const SizedBox(height: 12),
+              Text('Due: ${task.dueDate.year}-${task.dueDate.month.toString().padLeft(2, '0')}-${task.dueDate.day.toString().padLeft(2, '0')} ${task.dueDate.hour.toString().padLeft(2, '0')}:${task.dueDate.minute.toString().padLeft(2, '0')}',),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+      shown.add(task.id);
+      await TaskStorage.saveShownReminders(shown);
+    }
   }
 
   Future<void> _addTask(Task task) async {
